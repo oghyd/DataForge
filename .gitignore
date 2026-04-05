@@ -36,3 +36,7 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# uploaded videos
+/public/uploads/videos/*
+!/public/uploads/videos/.gitkeep

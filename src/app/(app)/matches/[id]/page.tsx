@@ -1,4 +1,5 @@
 import { getMatch } from "@/services/match-actions";
+import { getMatchVideos } from "@/services/video-actions";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Edit, MapPin, Calendar, Clock, Cloud, User, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
+import { VideoUploadSection } from "@/components/video/video-upload";
 
 function StatBar({ label, home, away }: { label: string; home: number | null; away: number | null }) {
   const h = home ?? 0;
@@ -32,7 +34,10 @@ function StatBar({ label, home, away }: { label: string; home: number | null; aw
 }
 
 export default async function MatchDetailPage({ params }: { params: { id: string } }) {
-  const match = await getMatch(params.id);
+  const [match, videos] = await Promise.all([
+    getMatch(params.id),
+    getMatchVideos(params.id),
+  ]);
   if (!match) return notFound();
 
   const hs = match.homeStats;
@@ -281,6 +286,15 @@ export default async function MatchDetailPage({ params }: { params: { id: string
           </Card>
         ))}
       </div>
+
+      {/* Match Videos */}
+      <VideoUploadSection
+        matchId={match.id}
+        videos={videos.map((v) => ({
+          ...v,
+          createdAt: v.createdAt.toISOString(),
+        }))}
+      />
 
       {/* Provenance */}
       <Card>

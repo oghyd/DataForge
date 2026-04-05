@@ -42,6 +42,7 @@ model User {
   assessments             Assessment[]       @relation("AssessmentBy")
   createdOrganizations    Organization[]     @relation("OrgCreatedBy")
   createdClubs            Club[]             @relation("ClubCreatedBy")
+  uploadedVideos          MatchVideo[]       @relation("VideoUploadedBy")
 }
 
 model UserOrganization {
@@ -410,6 +411,7 @@ model Match {
   teamStats      TeamMatchStats[]
   playerStats    PlayerMatchStats[]
   events         MatchEvent[]
+  videos         MatchVideo[]
 
   @@index([organizationId])
   @@index([seasonId])
@@ -777,4 +779,28 @@ model Notification {
   @@index([userId])
   @@index([isRead])
   @@index([createdAt])
+}
+
+// ============================================================
+// MATCH VIDEOS
+// ============================================================
+
+model MatchVideo {
+  id          String   @id @default(cuid())
+  matchId     String
+  uploadedById String
+  fileName    String
+  filePath    String
+  fileSize    Int      // bytes
+  mimeType    String   @default("video/mp4")
+  title       String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  match      Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  uploadedBy User  @relation("VideoUploadedBy", fields: [uploadedById], references: [id])
+
+  @@index([matchId])
+  @@index([uploadedById])
 }

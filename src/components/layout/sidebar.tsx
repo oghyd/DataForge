@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -17,26 +18,42 @@ import {
   Activity,
   ChevronLeft,
   ChevronRight,
+  Film,
 } from "lucide-react";
 import { useState } from "react";
 
-const navigation = [
+interface NavItem {
+  name: string;
+  href: string;
+  icon: typeof LayoutDashboard;
+  roles?: string[]; // if set, only these roles see it
+}
+
+const navigation: NavItem[] = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Players", href: "/players", icon: Users },
   { name: "Teams", href: "/teams", icon: Shield },
   { name: "Matches", href: "/matches", icon: Swords },
+  { name: "Videos", href: "/videos", icon: Film },
   { name: "Training", href: "/training", icon: ClipboardList },
-  { name: "Scouting", href: "/scouting", icon: Target },
+  { name: "Scouting", href: "/scouting", icon: Target, roles: ["SUPER_ADMIN", "SCOUT", "COACH", "ORG_ADMIN"] },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
-  { name: "Organizations", href: "/organizations", icon: Building2 },
-  { name: "Data Quality", href: "/data-quality", icon: Activity },
+  { name: "Organizations", href: "/organizations", icon: Building2, roles: ["SUPER_ADMIN", "ORG_ADMIN"] },
+  { name: "Data Quality", href: "/data-quality", icon: Activity, roles: ["SUPER_ADMIN", "ORG_ADMIN"] },
   { name: "Search", href: "/search", icon: Search },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const [collapsed, setCollapsed] = useState(false);
+
+  const userRole = (session?.user as Record<string, unknown>)?.role as string | undefined;
+
+  const visibleNav = navigation.filter(
+    (item) => !item.roles || (userRole && item.roles.includes(userRole))
+  );
 
   return (
     <aside
@@ -63,7 +80,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-1 p-2 overflow-y-auto">
-        {navigation.map((item) => {
+        {visibleNav.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link

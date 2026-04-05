@@ -7,6 +7,7 @@ async function main() {
   console.log("Seeding database...");
 
   // Clean existing data
+  await prisma.matchVideo.deleteMany();
   await prisma.matchEvent.deleteMany();
   await prisma.playerMatchStats.deleteMany();
   await prisma.teamMatchStats.deleteMany();
@@ -36,7 +37,7 @@ async function main() {
   const passwordHash = await hash("password123", 12);
   const admin = await prisma.user.create({
     data: {
-      email: "admin@footdata.com",
+      email: "admin@dataforge.com",
       name: "Admin User",
       passwordHash,
       role: "SUPER_ADMIN",
@@ -45,7 +46,7 @@ async function main() {
 
   const coach = await prisma.user.create({
     data: {
-      email: "coach@footdata.com",
+      email: "coach@dataforge.com",
       name: "Mohammed Benali",
       passwordHash,
       role: "COACH",
@@ -54,7 +55,7 @@ async function main() {
 
   const scout = await prisma.user.create({
     data: {
-      email: "scout@footdata.com",
+      email: "scout@dataforge.com",
       name: "Fatima Zahra",
       passwordHash,
       role: "SCOUT",
@@ -80,6 +81,42 @@ async function main() {
       { userId: admin.id, organizationId: org.id, role: "ADMIN" },
       { userId: coach.id, organizationId: org.id, role: "COACH" },
       { userId: scout.id, organizationId: org.id, role: "SCOUT" },
+    ],
+  });
+
+  // Create club manager users (each linked to the same org but with CLUB_MANAGER role)
+  const clubManagerAtlas = await prisma.user.create({
+    data: {
+      email: "atlas@dataforge.com",
+      name: "Youssef Atlas Manager",
+      passwordHash,
+      role: "CLUB_MANAGER",
+    },
+  });
+
+  const clubManagerEtoile = await prisma.user.create({
+    data: {
+      email: "etoile@dataforge.com",
+      name: "Nabil Etoile Manager",
+      passwordHash,
+      role: "CLUB_MANAGER",
+    },
+  });
+
+  const clubManagerUnion = await prisma.user.create({
+    data: {
+      email: "union@dataforge.com",
+      name: "Karim Union Manager",
+      passwordHash,
+      role: "CLUB_MANAGER",
+    },
+  });
+
+  await prisma.userOrganization.createMany({
+    data: [
+      { userId: clubManagerAtlas.id, organizationId: org.id, role: "MANAGER" },
+      { userId: clubManagerEtoile.id, organizationId: org.id, role: "MANAGER" },
+      { userId: clubManagerUnion.id, organizationId: org.id, role: "MANAGER" },
     ],
   });
 
@@ -377,7 +414,13 @@ async function main() {
 
   console.log("Seed complete!");
   console.log(`Created: 1 org, ${clubs.length} clubs, ${teams.length} teams, ${players.length} players, ${matchesData.length} matches`);
-  console.log("Login: admin@footdata.com / password123");
+  console.log("\nLogin credentials (all use password: password123):");
+  console.log("  Admin:         admin@dataforge.com");
+  console.log("  Coach:         coach@dataforge.com");
+  console.log("  Scout:         scout@dataforge.com");
+  console.log("  Atlas FC:      atlas@dataforge.com");
+  console.log("  Etoile Sport.: etoile@dataforge.com");
+  console.log("  Union Marrak.: union@dataforge.com");
 }
 
 main()
